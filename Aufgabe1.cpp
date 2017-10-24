@@ -2,6 +2,7 @@
 #include <fantom/register.hpp>
 #include <fantom/math.hpp>
 #include <fantom/fields.hpp>
+#include <fantom/dataset/ValueArray.hpp>
 
 using namespace fantom;
 
@@ -48,15 +49,20 @@ namespace
             myTriangle.push_back(p2);
 
             for (std::vector<Tensor<double,3 > >::const_iterator i = myTriangle.begin(); i != myTriangle.end(); ++i)
-                debugLog() << *i << ' ' ;
+                debugLog() << *i << ' ' ; // shows me the tensors
 
-            std:: shared_ptr <const DiscreteDomain< 3 > > myDomain = DomainFactory::makeDomainArbitrary(std::move(myTriangle), Precision::UINT64); //punkte in dem Universum
-
-
-            //int indices[3] = {0,1,2};
+            std::shared_ptr <const DiscreteDomain< 3 > > myDomain = DomainFactory::makeDomainArbitrary(std::move(myTriangle), Precision::UINT64); //punkte in dem Universum
 
 
-            //std::shared_ptr< const Grid< 3 > > m = fantom::DomainFactory::makeGridUnstructured( myDomain, 1, cellCounts, indices ); // parent domain, numCellTypes, cellCounts
+            std::vector< size_t > numberStuff({0,1,2});
+           // DefaultValueArray < size_t > indices(numberStuff, Precision::UINT64); //size_t as more general int
+
+            std::pair<Cell::Type, size_t> cellCounts[1];
+            cellCounts[0] = std::pair<Cell::Type, size_t> (Cell::TRIANGLE,1);
+
+            std::shared_ptr< const Grid< 3 > > myGrid = DomainFactory::makeGridUnstructured( *myDomain, 1, cellCounts, numberStuff ); // domain, numDifferentCellTypes, <typeOfForm, howOften>, whichPointsToUse
+            setResult("grid", myGrid);
+
             debugLog() << std::endl;
 
         }
