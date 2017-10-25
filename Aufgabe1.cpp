@@ -39,28 +39,58 @@ namespace
         void execute( const Algorithm::Options& options, const volatile bool& /* abortFlag */ ) override
         {
 
-            Tensor<double, 3> p0(1.0, 0.0, 0.0);
-            Tensor<double, 3> p1(0.0, 1.0, 0.0);
-            Tensor<double, 3> p2(0.0, 0.0, 1.0);
+            //roof points
+            Tensor<double, 3> r0(1.0, 0.0, 0.0);
+            Tensor<double, 3> r1(0.0, 1.0, 0.0);
+            Tensor<double, 3> r2(-1.0, 0.0, 0.0);
+            Tensor<double, 3> r3(0.0, -1.0, 0.0);
+            Tensor<double, 3> r4(0.0, 0.0, 1.0);
 
-            std::vector<Tensor<double,3>> myTriangle;
-            myTriangle.push_back(p0);
-            myTriangle.push_back(p1);
-            myTriangle.push_back(p2);
+            std::vector<Tensor<double,3>> house;
+            house.push_back(r0); // index 0
+            house.push_back(r1);
+            house.push_back(r2);
+            house.push_back(r3);
+            house.push_back(r4);
 
-            for (std::vector<Tensor<double,3 > >::const_iterator i = myTriangle.begin(); i != myTriangle.end(); ++i)
-                debugLog() << *i << ' ' ; // shows me the tensors
+            //block floor points
+            Tensor<double, 3> r5(1.0, 0.0, -1.0);
+            Tensor<double, 3> r6(0.0, 1.0, -1.0);
+            Tensor<double, 3> r7(-1.0, 0.0, -1.0);
+            Tensor<double, 3> r8(0.0, -1.0, -1.0);
 
-            std::shared_ptr <const DiscreteDomain< 3 > > myDomain = DomainFactory::makeDomainArbitrary(std::move(myTriangle), Precision::UINT64); //punkte in dem Universum
+            house.push_back(r5); // index 5
+            house.push_back(r6);
+            house.push_back(r7);
+            house.push_back(r8);
+
+            //pole points
+            Tensor<double, 3> r9(0.0,0.0,1.5);
+
+            house.push_back(r9); //index 9
+
+            //flag points
+            Tensor<double, 3> r10(0.0, 0.0, 1.3);
+            Tensor<double, 3> r11(0.0, 0.2, 1.4);
+
+            house.push_back(r10); //index 10
+            house.push_back(r11);
 
 
-            std::vector< size_t > numberStuff({0,1,2});
-           // DefaultValueArray < size_t > indices(numberStuff, Precision::UINT64); //size_t as more general int
+           // for (std::vector<Tensor<double,3 > >::const_iterator i = house.begin(); i != house.end(); ++i)
+           //    debugLog() << *i << ' ' ; // shows me the tensors
 
-            std::pair<Cell::Type, size_t> cellCounts[1];
-            cellCounts[0] = std::pair<Cell::Type, size_t> (Cell::TRIANGLE,1);
+            std::shared_ptr <const DiscreteDomain< 3 > > myDomain = DomainFactory::makeDomainArbitrary(std::move(house), Precision::UINT64); //punkte in dem Universum
 
-            std::shared_ptr< const Grid< 3 > > myGrid = DomainFactory::makeGridUnstructured( *myDomain, 1, cellCounts, numberStuff ); // domain, numDifferentCellTypes, <typeOfForm, howOften>, whichPointsToUse
+            std::pair<Cell::Type, size_t> cellCounts[4];
+            cellCounts[0] = std::pair<Cell::Type, size_t> (Cell::PYRAMID,1);
+            cellCounts[1] = std::pair<Cell::Type, size_t> (Cell::HEXAHEDRON,1);
+            cellCounts[2] = std::pair<Cell::Type, size_t> (Cell::LINE,1);
+            cellCounts[3] = std::pair<Cell::Type, size_t> (Cell::TRIANGLE,1);
+
+            std::vector< size_t > toUsePoints({0,1,2,3,4, 5,6,7,8,3,2,1,0, 9,4, 10,11,9}); //0-4 pyramid, 5,6,7,8,3,2,1,0 hexahedron, 9,4, line, 10, 11, 9 Triangle/flag
+
+            std::shared_ptr< const Grid< 3 > > myGrid = DomainFactory::makeGridUnstructured( *myDomain, 4, cellCounts, toUsePoints ); // domain, numDifferentCellTypes, <typeOfForm, howOften>, whichPointsToUse
             setResult("grid", myGrid);
 
             debugLog() << std::endl;
@@ -70,3 +100,26 @@ namespace
 
     AlgorithmRegister< Aufgabe1 > reg("VisPraktikum/Aufgabe1", "Created Data for tiny houses. Displayable with grid");
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
