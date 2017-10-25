@@ -100,15 +100,13 @@ namespace
 
             std::shared_ptr <const DiscreteDomain< 3 > > myDomain = DomainFactory::makeDomainArbitrary(std::move(house), Precision::UINT64); //punkte in dem Universum
 
-
+            for (std::vector<Tensor<double,3 > >::const_iterator i = house.begin(); i != house.end(); ++i)
+                debugLog() << *i << ' ' ; // shows me the tensors
 
             std::shared_ptr< const Grid< 3 > > myGrid = DomainFactory::makeGridUnstructured( *myDomain, 4, cellCounts, toUsePoints ); // domain, numDifferentCellTypes, <typeOfForm, howOften>, whichPointsToUse
             setResult("grid", myGrid);
 
-            for (std::vector<Tensor<double,3 > >::const_iterator i = house.begin(); i != house.end(); ++i)
-                debugLog() << *i << ' ' ; // shows me the tensors
             debugLog() << std::endl;
-
         }
     };
 
