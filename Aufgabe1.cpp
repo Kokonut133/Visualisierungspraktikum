@@ -18,14 +18,13 @@ namespace
             Options( fantom::Options::Control& control ) : DataAlgorithm::Options(control)
             {
                 // add options here
-                add< int >( "Number of houses" , "Specify how many houses you want" , 1 );
+                add< int >( "Number of Houses" , "Specify how many houses you want" , 1);
             }
         };
 
         struct DataOutputs : public DataAlgorithm::DataOutputs
         {
-            DataOutputs( fantom::DataOutputs::Control& control )
-                : DataAlgorithm::DataOutputs( control )
+            DataOutputs( fantom::DataOutputs::Control& control ) : DataAlgorithm::DataOutputs( control )
             {
                 add< Grid< 3 > >( "grid" );
             }
@@ -39,18 +38,87 @@ namespace
         void execute( const Algorithm::Options& options, const volatile bool& /* abortFlag */ ) override
         {
 
-            int houseNumber = 1;
-
+            double houseNumber = (double)options.get<int>("Number of Houses");
 
             double shift = 3.0;
-            int pointsPerHouse = 12;
-            std::vector<Tensor<double,3>> house;
-            std::vector< size_t > firstPoints({0,1,2,3,4, 5,6,7,8,3,2,1,0, 9,4, 10,11,9});
-            std::vector< size_t > toUsePoints;
+            std::vector<Tensor<double,3>> points;
 
-            int aNumber = 4*houseNumber;
-            std::pair<Cell::Type, size_t> cellCounts[aNumber];
+            std::vector<size_t> indices;
 
+            //Quadrat
+            for (int i = 0; i < houseNumber; i++) {
+                double mone = -1.0+(i*shift);
+                double zero = 0.0+(i*shift);
+                double one = 1.0+(i*shift);
+
+                Tensor<double, 3> r0(one, 0.0, 0.0);
+                Tensor<double, 3> r1(zero, 1.0, 0.0);
+                Tensor<double, 3> r2(mone, 0.0, 0.0);
+                Tensor<double, 3> r3(zero, -1.0, 0.0);
+                Tensor<double, 3> r4(zero, -1.0, 1.0);
+                Tensor<double, 3> r5(mone, 0.0, 1.0);
+                Tensor<double, 3> r6(zero, 1.0, 1.0);
+                Tensor<double, 3> r7(one, 0.0, 1.0);
+
+                points.push_back(r0);
+                points.push_back(r1);
+                points.push_back(r2);
+                points.push_back(r3);
+                points.push_back(r4);
+                points.push_back(r5);
+                points.push_back(r6);
+                points.push_back(r7);
+
+                for(int j = 0; j<8; j++){
+                    indices.push_back(j+(8*i));
+                }
+            }
+
+            //Dach
+            int count = 0;
+            for (int i = 0; i < houseNumber; i++) {
+                double zero = 0.0+(i*shift);
+
+                Tensor<double, 3> r8(zero, 0.0, 1.5);
+
+                points.push_back(r8);
+
+                for(int j = 4+(i*8); j<(8+(i*8)); j++){
+                    indices.push_back(j);
+                }
+                indices.push_back(8*houseNumber+count);
+                count++;
+            }
+
+           //Stange
+            int count2 = 0;
+            for (int i = 0; i < houseNumber; i++){
+                double zero = 0.0+(i*shift);
+
+                Tensor<double, 3> r9(zero, 0.0, 1.7);
+
+                points.push_back(r9);
+
+                indices.push_back(8*houseNumber+count2);
+                indices.push_back(8*houseNumber+houseNumber+count2);
+                count2++;
+            }
+
+
+            //Zuordnung der Punkte zu Zellen
+            size_t differentCellTypes = 3;
+
+            std::pair<Cell::Type, size_t> cellCounts[differentCellTypes];
+            size_t houses = (size_t) houseNumber;
+            std::pair<Cell::Type, size_t> hexas(Cell::HEXAHEDRON, houses);
+            std::pair<Cell::Type, size_t> pyramids(Cell::PYRAMID, houses);
+            std::pair<Cell::Type, size_t> line (Cell::LINE , houses);
+            cellCounts [0] = hexas;
+            cellCounts [1] = pyramids;
+            cellCounts [2] = line;
+
+
+            /*
             for(int i = 0; i<=houseNumber ; i++){
 
                 double mone = -1.0+(i*shift);
@@ -106,18 +174,27 @@ namespace
             }
 
             for(int i  = 0; i<=pointsPerHouse; i++){
-                toUsePoints.push_back(firstPoints[i]);
+                indices.push_back(firstPoints[i]);
             }
+            */
 
-            std::shared_ptr <const DiscreteDomain< 3 > > myDomain = DomainFactory::makeDomainArbitrary(std::move(house), Precision::UINT64); //punkte in dem Universum
+            std::shared_ptr <const DiscreteDomain< 3 > > myDomain = DomainFactory::makeDomainArbitrary(points, Precision::UINT64); //punkte in dem Universum
 
-            for (std::vector<Tensor<double,3 > >::const_iterator i = house.begin(); i != house.end(); ++i)
-                debugLog() << *i << ' ' ; // shows me the tensors
+            // for debugging
+            /*
+            for (size_t i = 0; i < points.size(); i++){
+               debugLog() << int(i) << " " << points[i] << std::endl; // shows me the tensors
+            }
+            for (size_t i = 0; i < indices.size(); i++){
+               debugLog() << int(i) << " " << indices[i] << std::endl; // shows me the tensors
+            }
+            debugLog() << cellCounts << std::endl; // show me cellcount
 
-            std::shared_ptr< const Grid< 3 > > myGrid = DomainFactory::makeGridUnstructured( *myDomain, 4, cellCounts, toUsePoints ); // domain, numDifferentCellTypes, <typeOfForm, howOften>, whichPointsToUse
+
+            std::shared_ptr< const Grid< 3 > > myGrid = DomainFactory::makeGridUnstructured( *myDomain, differentCellTypes, cellCounts, indices ); // domain, numDifferentCellTypes, <typeOfForm, howOften>, whichPointsToUse
             setResult("grid", myGrid);
+            */
 
-            debugLog() << std::endl;
         }
     };
 
