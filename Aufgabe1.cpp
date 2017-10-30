@@ -117,67 +117,6 @@ namespace
             cellCounts [1] = pyramids;
             cellCounts [2] = line;
 
-
-            /*
-            for(int i = 0; i<=houseNumber ; i++){
-
-                double mone = -1.0+(i*shift);
-                double zero = 1.0+(i*shift);
-                double one = 0.0+(i*shift);
-
-                //roof points
-                Tensor<double, 3> r0(one, 0.0, 0.0);
-                Tensor<double, 3> r1(zero, 1.0, 0.0);
-                Tensor<double, 3> r2(mone, 0.0, 0.0);
-                Tensor<double, 3> r3(zero, -1.0, 0.0);
-                Tensor<double, 3> r4(zero, 0.0, 1.0);
-
-                house.push_back(r0); // index 0
-                house.push_back(r1);
-                house.push_back(r2);
-                house.push_back(r3);
-                house.push_back(r4);
-
-                //block floor points
-                Tensor<double, 3> r5(one, 0.0, -1.0);
-                Tensor<double, 3> r6(zero, 1.0, -1.0);
-                Tensor<double, 3> r7(mone, 0.0, -1.0);
-                Tensor<double, 3> r8(zero, -1.0, -1.0);
-
-                house.push_back(r5); // index 5
-                house.push_back(r6);
-                house.push_back(r7);
-                house.push_back(r8);
-
-                //pole points
-                Tensor<double, 3> r9(zero,0.0,1.5);
-
-                house.push_back(r9); //index 9
-
-                //flag points
-                Tensor<double, 3> r10(zero, 0.0, 1.3);
-                Tensor<double, 3> r11(zero, 0.2, 1.4);
-
-                house.push_back(r10); //index 10
-                house.push_back(r11);
-
-                int a = 0+(i*4);
-                int b = 1+(i*4);
-                int c = 2+(i*4);
-                int d = 3+(i*4);
-
-                cellCounts[a] = std::pair<Cell::Type, size_t> (Cell::PYRAMID,1);
-                cellCounts[b] = std::pair<Cell::Type, size_t> (Cell::HEXAHEDRON,1);
-                cellCounts[c] = std::pair<Cell::Type, size_t> (Cell::LINE,1);
-                cellCounts[d] = std::pair<Cell::Type, size_t> (Cell::TRIANGLE,1);
-
-            }
-
-            for(int i  = 0; i<=pointsPerHouse; i++){
-                indices.push_back(firstPoints[i]);
-            }
-            */
-
             std::shared_ptr <const DiscreteDomain< 3 > > myDomain = DomainFactory::makeDomainArbitrary(points, Precision::UINT64); //punkte in dem Universum
 
             // for debugging
@@ -189,12 +128,10 @@ namespace
                debugLog() << int(i) << " " << indices[i] << std::endl; // shows me the tensors
             }
             debugLog() << cellCounts << std::endl; // show me cellcount
-
+            */
 
             std::shared_ptr< const Grid< 3 > > myGrid = DomainFactory::makeGridUnstructured( *myDomain, differentCellTypes, cellCounts, indices ); // domain, numDifferentCellTypes, <typeOfForm, howOften>, whichPointsToUse
             setResult("grid", myGrid);
-            */
-
         }
     };
 
