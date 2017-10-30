@@ -7,9 +7,9 @@ using namespace fantom;
 
 namespace
 {
-    class VisCityAlgorithm : public VisAlgorithm
+    class Aufgabe2Algorithm : public VisAlgorithm
     {
-        std::unique_ptr< Primitive > mGlyphs;
+        std::unique_ptr< Primitive > mGlyphs;//universe of images
 
     public:
         struct Options : public VisAlgorithm::Options
@@ -29,83 +29,83 @@ namespace
                     setVisible("Number of cell", value);
                 }
             }
-        };
+    };
 
         struct VisOutputs : public VisAlgorithm::VisOutputs
         {
             VisOutputs( fantom::VisOutputs::Control& control ) : VisAlgorithm::VisOutputs( control )
             {
-                addGraphics( "Glyphs" );
+                addGraphics( "Glyphs");
             }
         };
 
-        VisCityAlgorithm( InitData & data) : VisAlgorithm( data )
+        Aufgabe2Algorithm( InitData & data) : VisAlgorithm( data )
         {
         }
 
-        void drawCellByType(unsigned int& index, std::shared_ptr<const Grid<3>>& grid, const Color& color) {
-            //Alternative über Cell-Visitor
+        void drawMyType(std::shared_ptr<const Grid<3>>& grid, unsigned int& index, const Color& color) {
             Cell c = grid->cell(index);
             Cell::Type cellType = c.type();
-            const ValueArray<Point3>& points = grid->points();
+            const ValueArray<Tensor<double,3>>& points = grid->points(); //getting the points from my grid
 
             switch (cellType) {
-            case Cell::Type::HEXAHEDRON: {
-                std::vector<Vector3> vertices;
-                std::vector<std::vector<int>> sides;
-                sides.push_back(std::vector<int>({7,0,3,4}));
-                sides.push_back(std::vector<int>({3,0,1,2}));
-                sides.push_back(std::vector<int>({4,3,2,5}));
-                sides.push_back(std::vector<int>({5,2,1,6}));
-                sides.push_back(std::vector<int>({6,1,0,7}));
-                sides.push_back(std::vector<int>({7,4,5,6}));
+                case Cell::Type::PYRAMID: {
+                    //Bottom
+                    std::vector<Tensor<double,3>> bottom;
+                    bottom.push_back(points[c.index(0)]);
+                    bottom.push_back(points[c.index(1)]);
+                    bottom.push_back(points[c.index(2)]);
+                    bottom.push_back(points[c.index(3)]);
 
-                for (unsigned int i = 0; i < sides.size(); i++) {
-                    for (unsigned int j = 0; j < sides[i].size(); j++) {
-                        vertices.push_back(points[c.index(sides[i][j])]);
+                    //Triangles
+                    std::vector<Tensor<double,3>> vertices;
+                    std::vector<std::vector<int>> sides;
+                    sides.push_back(std::vector<int>({4,1,0}));
+                    sides.push_back(std::vector<int>({4,2,1}));
+                    sides.push_back(std::vector<int>({4,3,2}));
+                    sides.push_back(std::vector<int>({4,0,3}));
+
+                    for (unsigned int i = 0; i < sides.size(); i++) {
+                        for (unsigned int j = 0; j < sides[i].size(); j++) {
+                            vertices.push_back(points[c.index(sides[i][j])]);
+                        }
                     }
+                    mGlyphs->add(Primitive::QUADS).setColor(color).setVertices(bottom);
+                    mGlyphs->add(Primitive::TRIANGLES).setColor(color).setVertices(vertices);
+                    return;
                 }
-                mGlyphs->add(Primitive::QUADS).setColor(color).setVertices(vertices);
-                break;
-            }
-            case Cell::Type::PYRAMID: {
-                //Grundfläche
-                std::vector<Vector3> bottomVertices;
-                bottomVertices.push_back(points[c.index(0)]);
-                bottomVertices.push_back(points[c.index(1)]);
-                bottomVertices.push_back(points[c.index(2)]);
-                bottomVertices.push_back(points[c.index(3)]);
-                mGlyphs->add(Primitive::QUADS).setColor(color).setVertices(bottomVertices);
+                case Cell::Type::HEXAHEDRON: {
+                    //sides
+                    std::vector<Tensor<double,3>> vertices;
+                    std::vector<std::vector<int>> sides;
+                    sides.push_back(std::vector<int>({0,7,6,1}));//front
+                    sides.push_back(std::vector<int>({1,6,5,2}));//right
+                    sides.push_back(std::vector<int>({2,5,4,3}));//behind
+                    sides.push_back(std::vector<int>({3,4,7,0}));//left
+                    sides.push_back(std::vector<int>({7,6,5,4}));//top
+                    sides.push_back(std::vector<int>({0,1,2,3}));//bottom
 
-                //Seitenflächen aus Dreiecken
-                std::vector<Vector3> vertices;
-                std::vector<std::vector<int>> sides;
-                sides.push_back(std::vector<int>({4,1,0}));
-                sides.push_back(std::vector<int>({4,2,1}));
-                sides.push_back(std::vector<int>({4,3,2}));
-                sides.push_back(std::vector<int>({4,0,3}));
-
-                for (unsigned int i = 0; i < sides.size(); i++) {
-                    for (unsigned int j = 0; j < sides[i].size(); j++) {
-                        vertices.push_back(points[c.index(sides[i][j])]);
+                    for (unsigned int i = 0; i < sides.size(); i++) {
+                        for (unsigned int j = 0; j < sides[i].size(); j++) {
+                            vertices.push_back(points[c.index(sides[i][j])]);
+                        }
                     }
+                    mGlyphs->add(Primitive::QUADS).setColor(color).setVertices(vertices);
+                    return;
                 }
-                mGlyphs->add(Primitive::TRIANGLES).setColor(color).setVertices(vertices);
-                break;
-            }
-            case Cell::Type::QUAD: {
-                std::vector<Vector3> bottomVertices;
-                bottomVertices.push_back(points[c.index(0)]);
-                bottomVertices.push_back(points[c.index(1)]);
-                bottomVertices.push_back(points[c.index(2)]);
-                bottomVertices.push_back(points[c.index(3)]);
-                mGlyphs->add(Primitive::QUADS).setColor(Color(1 - color.r(), 1 - color.g(), 1 - color.b())).setVertices(bottomVertices);
-                break;
-            }
-            default: {
-                debugLog() << "Unsupported Cell Type " << cellType << std::endl;
-                break;
-            }
+                case Cell::Type::LINE: {
+                    //pole
+                    std::vector<Tensor<double,3>> line;
+                    line.push_back(points[c.index(0)]);
+                    line.push_back(points[c.index(1)]);
+
+                    mGlyphs->add(Primitive::LINES).setColor(Color(1,1,1)).setVertices(line);
+                    return;
+                }
+                default: {
+                    debugLog() << "Try again with a different type" << std::endl;
+                    return;
+                }
             }
         }
 
@@ -115,24 +115,24 @@ namespace
 
             std::shared_ptr< const Grid < 3 > > grid = options.get< Grid < 3 > >("Grid");
             if (!grid) {
-                return; //falls Grid noch nicht vorhanden (zb beim Laden) abbrechen, sonst segfault
+                debugLog() << "I need some kind of grid man" << std::endl;
+                return;
             }
 
-            //Wände zeichnen
-            auto shouldDrawSingleCell = options.get< bool >("Show single cell");
+            //draw walls
             Color color = options.get<Color>("Color");
-            if (shouldDrawSingleCell) {
-                auto cellNumber = options.get< unsigned int >("Number of cell");
-                drawCellByType(cellNumber, grid, color);
+            if (options.get<bool>("Show single cell")) {
+                auto cell = options.get< unsigned int >("Number of cell");
+                drawMyType(grid, cell, color);
             }
             else {
-                for (unsigned int i = 0; i < grid->numCells(); i++) {
-                    drawCellByType(i, grid, color);
+                for (unsigned int cell = 0; cell < grid->numCells(); cell++) {
+                    drawMyType(grid, cell, color);
                 }
             }
         }
 
     };
 
-    AlgorithmRegister< VisCityAlgorithm > reg("VisPraktikum/Aufgabe 2", "Zeichnet eine prächtige Stadt");
+    AlgorithmRegister< Aufgabe2Algorithm > reg("praktikum/Aufgabe2", "Fills out mah Buildings");
 }
