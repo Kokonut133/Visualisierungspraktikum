@@ -135,7 +135,7 @@ namespace
         }
     };
 
-    AlgorithmRegister< Aufgabe1 > reg("VisPraktikum/Aufgabe1", "Created Data for tiny houses. Displayable with grid");
+    AlgorithmRegister< Aufgabe1 > reg("praktikum/Aufgabe1", "Created Data for tiny houses. Displayable with grid");
 }
 
 
